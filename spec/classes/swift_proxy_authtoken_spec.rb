@@ -19,7 +19,7 @@ describe 'swift::proxy::authtoken' do
 
     describe "when using default parameters" do
       it { is_expected.to contain_swift_proxy_config('filter:authtoken/log_name').with_value('swift') }
-      it { is_expected.to contain_swift_proxy_config('filter:authtoken/signing_dir').with_value('/var/cache/swift') }
+      it { is_expected.to contain_swift_proxy_config('filter:authtoken/signing_dir').with_value(platform_params[:default_signing_dir]) }
       it { is_expected.to contain_swift_proxy_config('filter:authtoken/paste.filter_factory').with_value('keystonemiddleware.auth_token:filter_factory') }
       it { is_expected.to contain_swift_proxy_config('filter:authtoken/www_authenticate_uri').with_value('http://127.0.0.1:5000') }
       it { is_expected.to contain_swift_proxy_config('filter:authtoken/auth_url').with_value('http://127.0.0.1:5000') }
@@ -62,9 +62,9 @@ describe 'swift::proxy::authtoken' do
       it { is_expected.to contain_swift_proxy_config('filter:authtoken/include_service_catalog').with_value('false') }
     end
 
-    describe 'when overriding auth_uri' do
+    describe 'when overriding www_authenticate_uri' do
       let :params do
-        { :auth_uri => 'http://public.host/keystone/main' }
+        { :www_authenticate_uri => 'http://public.host/keystone/main' }
       end
 
       it { is_expected.to contain_swift_proxy_config('filter:authtoken/www_authenticate_uri').with_value('http://public.host/keystone/main') }
@@ -80,15 +80,15 @@ describe 'swift::proxy::authtoken' do
       it { is_expected.to contain_swift_proxy_config('filter:authtoken/auth_url').with_value('https://foo.bar:5000/') }
     end
 
-    describe "when both auth_uri and identity_uri are set" do
+    describe "when both www_authenticate_uri and identity_uri are set" do
       let :params do
         {
-          :auth_uri => 'https://foo.bar:5000/v2.0/',
-          :identity_uri => 'https://foo.bar:5000/'
+          :www_authenticate_uri => 'https://foo.bar:5000/v3/',
+          :identity_uri         => 'https://foo.bar:5000/'
         }
       end
 
-      it { is_expected.to contain_swift_proxy_config('filter:authtoken/www_authenticate_uri').with_value('https://foo.bar:5000/v2.0/') }
+      it { is_expected.to contain_swift_proxy_config('filter:authtoken/www_authenticate_uri').with_value('https://foo.bar:5000/v3/') }
       it { is_expected.to contain_swift_proxy_config('filter:authtoken/auth_url').with_value('https://foo.bar:5000/') }
     end
   end
@@ -99,6 +99,19 @@ describe 'swift::proxy::authtoken' do
     context "on #{os}" do
       let (:facts) do
         facts.merge(OSDefaults.get_facts())
+      end
+
+      let(:platform_params) do
+        case facts[:osfamily]
+        when 'Debian'
+          if facts[:os_package_type] == 'debian'
+            { :default_signing_dir => '/var/lib/swift' }
+          else
+            { :default_signing_dir => '/var/cache/swift' }
+          end
+        when 'RedHat'
+          { :default_signing_dir => '/var/cache/swift' }
+        end
       end
 
       it_configures 'swift::proxy::authtoken'
