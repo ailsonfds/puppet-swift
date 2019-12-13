@@ -1,51 +1,5 @@
 {
-    "name": "openstack-swift",
-    "version": "10.4.0",
     "author": "Puppet Labs and OpenStack Contributors",
-    "summary": "Puppet module for OpenStack Swift",
-    "license": "Apache-2.0",
-    "source": "git://github.com/openstack/puppet-swift.git",
-    "project_page": "https://launchpad.net/puppet-swift",
-    "issues_url": "https://bugs.launchpad.net/puppet-swift",
-    "requirements": [
-        {
-            "name": "pe",
-            "version_requirement": "4.x"
-        },
-        {
-            "name": "puppet",
-            "version_requirement": "4.x"
-        }
-    ],
-    "operatingsystem_support": [
-        {
-            "operatingsystem": "Debian",
-            "operatingsystemrelease": [
-                "7"
-            ]
-        },
-        {
-            "operatingsystem": "Fedora",
-            "operatingsystemrelease": [
-                "20"
-            ]
-        },
-        {
-            "operatingsystem": "RedHat",
-            "operatingsystemrelease": [
-                "6.5",
-                "7"
-            ]
-        },
-        {
-            "operatingsystem": "Ubuntu",
-            "operatingsystemrelease": [
-                "14.04",
-                "16.04"
-            ]
-        }
-    ],
-    "description": "Installs and configures OpenStack Swift (Object Storage).",
     "dependencies": [
         {
             "name": "puppetlabs/inifile",
@@ -53,7 +7,7 @@
         },
         {
             "name": "openstack/keystone",
-            "version_requirement": ">=10.4.0 <11.0.0"
+            "version_requirement": ">=11.6.0 <12.0.0"
         },
         {
             "name": "puppetlabs/rsync",
@@ -75,5 +29,49 @@
             "name": "saz/memcached",
             "version_requirement": ">=2.0.2 <3.0.0"
         }
-    ]
+    ],
+    "description": "Installs and configures OpenStack Swift (Object Storage).",
+    "issues_url": "https://bugs.launchpad.net/puppet-swift",
+    "license": "Apache-2.0",
+    "name": "openstack-swift",
+    "operatingsystem_support": [
+        {
+            "operatingsystem": "Debian",
+            "operatingsystemrelease": [
+                "8"
+            ]
+        },
+        {
+            "operatingsystem": "Fedora",
+            "operatingsystemrelease": [
+                "24"
+            ]
+        },
+        {
+            "operatingsystem": "RedHat",
+            "operatingsystemrelease": [
+                "7"
+            ]
+        },
+        {
+            "operatingsystem": "Ubuntu",
+            "operatingsystemrelease": [
+                "16.04"
+            ]
+        }
+    ],
+    "project_page": "https://launchpad.net/puppet-swift",
+    "requirements": [
+        {
+            "name": "pe",
+            "version_requirement": "4.x"
+        },
+        {
+            "name": "puppet",
+            "version_requirement": "4.x"
+        }
+    ],
+    "source": "git://github.com/openstack/puppet-swift.git",
+    "summary": "Puppet module for OpenStack Swift",
+    "version": "11.6.0"
 }

@@ -75,6 +75,33 @@
 #   (Optional) The password for the user
 #   Defaults to 'password'
 #
+# [*notification_ssl_ca_file*]
+#   (optional) SSL certification authority file (valid only if SSL enabled).
+#   (string value)
+#   Defaults to $::os_service_default
+#
+# [*notification_ssl_cert_file*]
+#   (optional) SSL cert file. (string value)
+#   Defaults to $::os_service_default
+#
+# [*notification_ssl_key_file*]
+#   (optional) SSL key file. (string value)
+#   Defaults to $::os_service_default
+#
+# [*amqp_ssl_key_password*]
+#   (Optional) Password for decrypting ssl_key_file (if encrypted)
+#   Defaults to $::os_service_default.
+#
+# [*rabbit_use_ssl*]
+#   (optional) Boolean. Connect over SSL for RabbitMQ. (boolean value)
+#   Defaults to $::os_service_default
+#
+# [*kombu_ssl_version*]
+#   (optional) SSL version to use (valid only if SSL enabled).
+#   Valid values are TLSv1, SSLv23 and SSLv3. SSLv2 may be
+#   available on some distributions. (string value)
+#   Defaults to $::os_service_default
+#
 # === DEPRECATED PARAMETERS
 #
 # [*rabbit_host*]
@@ -113,29 +140,35 @@
 # Copyright 2013 eNovance licensing@enovance.com
 #
 class swift::proxy::ceilometer(
-  $default_transport_url = undef,
-  $driver                = undef,
-  $topic                 = undef,
-  $control_exchange      = undef,
-  $ensure                = 'present',
-  $group                 = 'ceilometer',
-  $nonblocking_notify    = false,
-  $ignore_projects       = ['services'],
-  $auth_uri              = 'http://127.0.0.1:5000',
-  $auth_url              = 'http://127.0.0.1:35357',
-  $auth_type             = 'password',
-  $project_domain_name   = 'Default',
-  $user_domain_name      = 'Default',
-  $project_name          = 'services',
-  $username              = 'swift',
-  $password              = 'password',
+  $default_transport_url      = undef,
+  $driver                     = $::os_service_default,
+  $topic                      = undef,
+  $control_exchange           = undef,
+  $ensure                     = 'present',
+  $group                      = 'ceilometer',
+  $nonblocking_notify         = false,
+  $ignore_projects            = ['services'],
+  $auth_uri                   = 'http://127.0.0.1:5000',
+  $auth_url                   = 'http://127.0.0.1:35357',
+  $auth_type                  = 'password',
+  $project_domain_name        = 'Default',
+  $user_domain_name           = 'Default',
+  $project_name               = 'services',
+  $username                   = 'swift',
+  $password                   = 'password',
+  $notification_ssl_ca_file   = $::os_service_default,
+  $notification_ssl_cert_file = $::os_service_default,
+  $notification_ssl_key_file  = $::os_service_default,
+  $amqp_ssl_key_password      = $::os_service_default,
+  $rabbit_use_ssl             = $::os_service_default,
+  $kombu_ssl_version          = $::os_service_default,
   # DEPRECATED PARAMETERS
-  $rabbit_user           = 'guest',
-  $rabbit_password       = 'guest',
-  $rabbit_host           = '127.0.0.1',
-  $rabbit_port           = '5672',
-  $rabbit_hosts          = undef,
-  $rabbit_virtual_host   = '/',
+  $rabbit_user                = 'guest',
+  $rabbit_password            = 'guest',
+  $rabbit_host                = '127.0.0.1',
+  $rabbit_port                = '5672',
+  $rabbit_hosts               = undef,
+  $rabbit_virtual_host        = '/',
 ) inherits swift {
 
   include ::swift::deps
@@ -165,6 +198,8 @@ deprecated. Please use swift::proxy::ceilometer::default_transport_url instead."
     groups +> $group,
   }
 
+  Package<| tag == 'ceilometer-package' |> -> User['swift']
+
   if defined(Service['swift-proxy-server']) {
     File['/var/log/ceilometer/swift-proxy-server.log'] -> Service['swift-proxy-server']
     Package['python-ceilometermiddleware'] -> Service['swift-proxy-server']
@@ -193,6 +228,23 @@ deprecated. Please use swift::proxy::ceilometer::default_transport_url instead."
     'filter:ceilometer/project_name':         value => $project_name;
     'filter:ceilometer/username':             value => $username;
     'filter:ceilometer/password':             value => $password;
+  }
+
+  if $amqp_url =~ /^rabbit.*/ {
+    oslo::messaging::rabbit {'swift_proxy_config':
+      kombu_ssl_ca_certs => $notification_ssl_ca_file,
+      kombu_ssl_certfile => $notification_ssl_cert_file,
+      kombu_ssl_keyfile  => $notification_ssl_key_file,
+      kombu_ssl_version  => $kombu_ssl_version,
+      rabbit_use_ssl     => $rabbit_use_ssl,
+    }
+  } elsif $amqp_url =~ /^amqp.*/ {
+    oslo::messaging::amqp {'swift_proxy_config':
+      ssl_ca_file      => $notification_ssl_ca_file,
+      ssl_cert_file    => $notification_ssl_cert_file,
+      ssl_key_file     => $notification_ssl_key_file,
+      ssl_key_password => $amqp_ssl_key_password,
+    }
   }
 
   package { 'python-ceilometermiddleware':

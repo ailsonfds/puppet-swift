@@ -1,5 +1,5 @@
 # follow the instructions for creating a loopback device
-# for storage from: http://swift.openstack.org/development_saio.html
+# for storage from: https://docs.openstack.org/swift/latest/development_saio.html
 #
 # this define needs to be sent a refresh signal to do anything
 #
@@ -42,9 +42,11 @@ define swift::storage::ext4(
   swift::storage::mount { $name:
     device       => $device,
     mnt_base_dir => $mnt_base_dir,
-    subscribe    => Exec["mkfs-${name}"],
     loopback     => $loopback,
     fstype       => 'ext4',
   }
+
+  Exec<| title == "mkfs-${name}" |>
+  ~> Swift::Storage::Mount<| title == $name |>
 
 }

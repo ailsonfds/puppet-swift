@@ -57,7 +57,7 @@
 #   it will try to default to the number of effective cpu cores and fallback to
 #   one. Increasing the number of workers may reduce the possibility of slow file
 #   system operations in one request from negatively impacting other requests.
-#   See http://docs.openstack.org/developer/swift/deployment_guide.html#general-service-tuning
+#   See https://docs.openstack.org/swift/latest/deployment_guide.html#general-service-tuning
 #   Defaults to $::os_workers.
 #
 # [*allow_versions*]
@@ -216,8 +216,8 @@ define swift::storage::server(
   concat { "/etc/swift/${config_file_path}":
     owner   => $owner,
     group   => $group,
-    notify  => Service["swift-${type}-server", "swift-${type}-replicator", "swift-${type}-auditor"],
-    require => Package['swift'],
+    notify  => Anchor['swift::config::end'],
+    require => Anchor['swift::install::end'],
     tag     => 'swift-concat',
   }
 
@@ -239,7 +239,7 @@ define swift::storage::server(
     # does not specify the backends for every specified element of
     # the pipeline
     before  => $required_middlewares,
-    require => Package['swift'],
+    require => Anchor['swift::install::end'],
   }
 
   case $type {
