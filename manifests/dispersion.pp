@@ -7,7 +7,7 @@
 # on the swift proxy node.
 #
 # For more details, see :
-#   http://swift.openstack.org/admin_guide.html#cluster-health
+#   https://docs.openstack.org/swift/latest/admin_guide.html#cluster-health
 #
 # === Parameters
 #
@@ -89,6 +89,7 @@ class swift::dispersion (
     ensure => file,
     owner  => 'swift',
     group  => 'swift',
+    mode   => '0640',
   }
 
   swift_dispersion_config {
