@@ -4,4 +4,5 @@
       - puppet-openstack-module-unit-jobs
       - puppet-openstack-integration-jobs-scenario002
       - puppet-openstack-beaker-jobs
+      - tripleo-puppet-undercloud
       - release-notes-jobs

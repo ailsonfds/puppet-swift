@@ -3,11 +3,11 @@
     "dependencies": [
         {
             "name": "puppetlabs/inifile",
-            "version_requirement": ">=1.0.0 <2.0.0"
+            "version_requirement": ">=2.0.0 <3.0.0"
         },
         {
             "name": "openstack/keystone",
-            "version_requirement": ">=12.4.0 <13.0.0"
+            "version_requirement": ">=13.3.0 <14.0.0"
         },
         {
             "name": "puppetlabs/rsync",
@@ -38,7 +38,7 @@
         {
             "operatingsystem": "Debian",
             "operatingsystemrelease": [
-                "8"
+                "9"
             ]
         },
         {
@@ -56,16 +56,13 @@
         {
             "operatingsystem": "Ubuntu",
             "operatingsystemrelease": [
-                "16.04"
+                "16.04",
+                "18.04"
             ]
         }
     ],
     "project_page": "https://launchpad.net/puppet-swift",
     "requirements": [
-        {
-            "name": "pe",
-            "version_requirement": "4.x"
-        },
         {
             "name": "puppet",
             "version_requirement": "4.x"
@@ -73,10 +70,6 @@
     ],
     "source": "git://github.com/openstack/puppet-swift.git",
     "summary": "Puppet module for OpenStack Swift",
-<<<<<<< HEAD
-    "version": "11.6.0"
+
+    "version": "13.3.1"
 }
-=======
-    "version": "12.4.0"
-}
->>>>>>> a68e2dee8a5e5f4267db906a57d008335f190f29

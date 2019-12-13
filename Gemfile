@@ -8,7 +8,7 @@ group :development, :test, :system_tests do
   else
     gem 'puppet-openstack_spec_helper',
         :git => 'https://git.openstack.org/openstack/puppet-openstack_spec_helper',
-        :branch => 'stable/queens',
+        :branch => 'stable/rocky',
         :require => 'false'
   end
 end
