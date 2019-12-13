@@ -14,6 +14,7 @@ describe 'swift::proxy' do
      :operatingsystem => 'Ubuntu',
      :osfamily        => 'Debian',
      :os_workers      => 1,
+     :processorcount  => 1,
     })
   end
 
@@ -339,6 +340,7 @@ describe 'swift::proxy' do
       OSDefaults.get_facts({
         :operatingsystem => 'Ubuntu',
         :osfamily        => 'Debian',
+        :processorcount  => 1,
       })
     end
 
@@ -368,6 +370,7 @@ describe 'swift::proxy' do
       OSDefaults.get_facts({
         :osfamily        => 'RedHat',
         :operatingsystem => 'RedHat',
+        :processorcount  => 1,
       })
     end
 
