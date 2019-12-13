@@ -8,39 +8,7 @@ describe 'swift::proxy::ceilometer' do
      }'
   end
 
-  describe "when using default parameters" do
-    it { is_expected.to contain_swift_proxy_config('filter:ceilometer/paste.filter_factory').with_value('ceilometermiddleware.swift:filter_factory') }
-    it { is_expected.to contain_swift_proxy_config('filter:ceilometer/url').with_value('rabbit://guest:guest@127.0.0.1:5672//') }
-    it { is_expected.to contain_swift_proxy_config('filter:ceilometer/nonblocking_notify').with_value('false') }
-    it { is_expected.to contain_user('swift').with_groups('ceilometer') }
-    it { is_expected.to contain_file('/var/log/ceilometer/swift-proxy-server.log').with(:owner => 'swift', :group => 'swift', :mode => '0664') }
-  end
-
-  describe "when overriding default parameters" do
-    let :params do
-      { :group               => 'www-data',
-        :rabbit_user         => 'user_1',
-        :rabbit_password     => 'user_1_passw',
-        :rabbit_host         => '1.1.1.1',
-        :rabbit_port         => '5673',
-        :rabbit_virtual_host => 'rabbit',
-        :driver              => 'messagingv2',
-        :topic               => 'notifications',
-        :control_exchange    => 'swift',
-        :nonblocking_notify  => true,
-        :ignore_projects     => ['services'],
-        :auth_uri            => 'http://127.0.0.1:5000',
-        :auth_url            => 'http://127.0.0.1:35357',
-        :auth_type           => 'password',
-        :project_domain_name => 'Default',
-        :user_domain_name    => 'Default',
-        :project_name        => 'services',
-        :username            => 'swift',
-        :password            => 'password',
-      }
-    end
-  shared_examples 'swift-proxy-ceilometer' do
-
+  shared_examples 'swift::proxy::ceilometer' do
     describe "when using default parameters" do
       it { is_expected.to contain_swift_proxy_config('filter:ceilometer/paste.filter_factory').with_value('ceilometermiddleware.swift:filter_factory') }
       it { is_expected.to contain_swift_proxy_config('filter:ceilometer/url').with_value('rabbit://user_1:user_1_passw@1.1.1.1:5673/rabbit') }
@@ -77,7 +45,7 @@ describe 'swift::proxy::ceilometer' do
           :nonblocking_notify  => true,
           :ignore_projects     => ['services'],
 	  :auth_uri            => 'http://127.0.0.1:5000',
-	  :auth_url            => 'http://127.0.0.1:35357',
+	  :auth_url            => 'http://127.0.0.1:5000',
 	  :auth_type           => 'password',
 	  :project_domain_name => 'Default',
 	  :user_domain_name    => 'Default',
@@ -97,7 +65,7 @@ describe 'swift::proxy::ceilometer' do
         it { is_expected.to contain_swift_proxy_config('filter:ceilometer/nonblocking_notify').with_value('true') }
         it { is_expected.to contain_swift_proxy_config('filter:ceilometer/ignore_projects').with_value(['services']) }
 	it { is_expected.to contain_swift_proxy_config('filter:ceilometer/auth_uri').with_value('http://127.0.0.1:5000') }
-	it { is_expected.to contain_swift_proxy_config('filter:ceilometer/auth_url').with_value('http://127.0.0.1:35357') }
+	it { is_expected.to contain_swift_proxy_config('filter:ceilometer/auth_url').with_value('http://127.0.0.1:5000') }
         it { is_expected.to contain_swift_proxy_config('filter:ceilometer/auth_type').with_value('password') }
         it { is_expected.to contain_swift_proxy_config('filter:ceilometer/project_domain_name').with_value('Default') }
         it { is_expected.to contain_swift_proxy_config('filter:ceilometer/user_domain_name').with_value('Default') }
@@ -136,7 +104,7 @@ describe 'swift::proxy::ceilometer' do
         :kombu_ssl_version  => '<SERVICE DEFAULT>',
       )}
 
-      context 'with overriden rabbit ssl params' do
+      context 'with overridden rabbit ssl params' do
         before do
           params.merge!(
             {
@@ -167,7 +135,7 @@ describe 'swift::proxy::ceilometer' do
       let (:facts) do
         facts.merge!(OSDefaults.get_facts())
       end
-      it_behaves_like 'swift-proxy-ceilometer'
+      it_behaves_like 'swift::proxy::ceilometer'
     end
   end
 

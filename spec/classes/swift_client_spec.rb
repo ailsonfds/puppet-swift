@@ -10,7 +10,7 @@ describe 'swift::client' do
     { :package_ensure   => 'present' }
   end
 
-  shared_examples_for 'swift client' do
+  shared_examples 'swift::client' do
     let :p do
       default_params.merge(params)
     end
@@ -19,7 +19,7 @@ describe 'swift::client' do
 
     it 'installs swift client package' do
       is_expected.to contain_package('swiftclient').with(
-        :name   => 'python-swiftclient',
+        :name   => platform_params[:client_package_name],
         :ensure => p[:package_ensure],
         :tag    => ['openstack','swift-support-package'],
       )
@@ -27,19 +27,31 @@ describe 'swift::client' do
 
   end
 
-  context 'on Debian platform' do
-    let :facts do
-      OSDefaults.get_facts({ :osfamily => 'Debian' })
-    end
+  on_supported_os({
+    :supported_os   => OSDefaults.get_supported_os
+  }).each do |os,facts|
+    context "on #{os}" do
+      let (:facts) do
+        facts.merge(OSDefaults.get_facts({
+          :fqdn           => 'some.host.tld',
+        }))
+      end
 
-    it_configures 'swift client'
+      let(:platform_params) do
+        case facts[:osfamily]
+        when 'Debian'
+          if facts[:os_package_type] == 'debian'
+            { :client_package_name => 'python3-swiftclient' }
+          else
+            { :client_package_name => 'python-swiftclient' }
+          end
+        when 'RedHat'
+          { :client_package_name => 'python-swiftclient' }
+        end
+      end
+
+      it_configures 'swift::client'
+    end
   end
 
-  context 'on RedHat platform' do
-    let :facts do
-      OSDefaults.get_facts({ :osfamily => 'RedHat' })
-    end
-
-    it_configures 'swift client'
-  end
 end
