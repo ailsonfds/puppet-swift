@@ -18,9 +18,10 @@
 # Configure Swift Container Quotas
 #
 class swift::proxy::container_quotas() {
-  concat::fragment { 'swift_container_quotas':
-    target  => '/etc/swift/proxy-server.conf',
-    content => template('swift/proxy/container_quotas.conf.erb'),
-    order   => '81',
+
+  include ::swift::deps
+
+  swift_proxy_config {
+    'filter:container_quotas/use': value => 'egg:swift#container_quotas';
   }
 }

@@ -1,5 +1,5 @@
 # == class: swift::proxy::tempauth
-# This class manage tempauth middleware
+# This class manages tempauth middleware
 #
 #  [*reseller_prefix*]
 #    The naming scope for the auth service. Swift storage accounts and
@@ -81,10 +81,13 @@ class swift::proxy::tempauth (
   $storage_url_scheme = undef,
 ) {
 
+  include ::swift::deps
+
   validate_array($account_user_list)
 
   if ($reseller_prefix) {
     validate_string($reseller_prefix)
+    $reseller_prefix_upcase = upcase($reseller_prefix)
   }
 
   if ($token_life) {
@@ -103,10 +106,28 @@ class swift::proxy::tempauth (
     validate_re($storage_url_scheme, ['http','https','default'])
   }
 
-  concat::fragment { 'swift-proxy-swauth':
-    target  => '/etc/swift/proxy-server.conf',
-    content => template('swift/proxy/tempauth.conf.erb'),
-    order   => '01',
+
+  swift_proxy_config {
+    'filter:tempauth/use':                value => 'egg:swift#tempauth';
+    'filter:tempauth/reseller_prefix':    value => $reseller_prefix_upcase;
+    'filter:tempauth/token_life':         value => $token_life;
+    'filter:tempauth/auth_prefix':        value => $auth_prefix;
+    'filter:tempauth/storage_url_scheme': value => $storage_url_scheme;
   }
 
+  # tempauth account_users end up in the following format
+  # user_<account>_<user> = <key> .<group1> .<groupx>
+  # ex: user_admin_admin=admin .admin .reseller_admin
+  # account_data is an array with each element containing a single account string:
+  # ex [user_<account>_<user>, <key> .<group1> .<groupx>]
+  if $account_user_list {
+    $account_data = split(inline_template(
+      "<% @account_user_list.each do |user| %>\
+      user_<%= user['account'] %>_<%= user['user'] %>,\
+      <%= user['key'] %> <%= user['groups'].map { |g| '.' + g }.join(' ') %> ; <% end %>"),';')
+
+    # write each temauth account line to file
+    # TODO replace/simplify with iterators once all supported puppet versions support them.
+    swift::proxy::tempauth_account { $account_data: }
+  }
 }

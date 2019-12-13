@@ -48,10 +48,14 @@ class swift::proxy::ratelimit(
   $account_ratelimit = 0
 ) {
 
-  concat::fragment { 'swift_ratelimit':
-    target  => '/etc/swift/proxy-server.conf',
-    content => template('swift/proxy/ratelimit.conf.erb'),
-    order   => '26',
-  }
+  include ::swift::deps
 
+  swift_proxy_config {
+    'filter:ratelimit/use':                    value => 'egg:swift#ratelimit';
+    'filter:ratelimit/clock_accuracy':         value => $clock_accuracy;
+    'filter:ratelimit/max_sleep_time_seconds': value => $max_sleep_time_seconds;
+    'filter:ratelimit/log_sleep_time_seconds': value => $log_sleep_time_seconds;
+    'filter:ratelimit/rate_buffer_seconds':    value => $rate_buffer_seconds;
+    'filter:ratelimit/account_ratelimit':      value => $account_ratelimit;
+  }
 }

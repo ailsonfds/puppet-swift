@@ -6,29 +6,13 @@ describe 'swift::proxy::ratelimit' do
     {}
   end
 
-  let :pre_condition do
-    'class { "concat::setup": }
-     concat { "/etc/swift/proxy-server.conf": }'
-  end
-
-  let :fragment_file do
-    "/var/lib/puppet/concat/_etc_swift_proxy-server.conf/fragments/26_swift_ratelimit"
-  end
-
   describe "when using default parameters" do
-    it 'should build the fragment with correct parameters' do
-      verify_contents(catalogue, fragment_file,
-        [
-          '[filter:ratelimit]',
-          'use = egg:swift#ratelimit',
-          'clock_accuracy = 1000',
-          'max_sleep_time_seconds = 60',
-          'log_sleep_time_seconds = 0',
-          'rate_buffer_seconds = 5',
-          'account_ratelimit = 0',
-        ]
-      )
-    end
+    it { is_expected.to contain_swift_proxy_config('filter:ratelimit/use').with_value('egg:swift#ratelimit') }
+    it { is_expected.to contain_swift_proxy_config('filter:ratelimit/clock_accuracy').with_value('1000') }
+    it { is_expected.to contain_swift_proxy_config('filter:ratelimit/max_sleep_time_seconds').with_value('60') }
+    it { is_expected.to contain_swift_proxy_config('filter:ratelimit/log_sleep_time_seconds').with_value('0') }
+    it { is_expected.to contain_swift_proxy_config('filter:ratelimit/rate_buffer_seconds').with_value('5') }
+    it { is_expected.to contain_swift_proxy_config('filter:ratelimit/account_ratelimit').with_value('0') }
   end
 
   describe "when overriding default parameters" do
@@ -41,19 +25,11 @@ describe 'swift::proxy::ratelimit' do
         :account_ratelimit      => 69
       }
     end
-    it 'should build the fragment with correct parameters' do
-      verify_contents(catalogue, fragment_file,
-        [
-          '[filter:ratelimit]',
-          'use = egg:swift#ratelimit',
-          'clock_accuracy = 9436',
-          'max_sleep_time_seconds = 3600',
-          'log_sleep_time_seconds = 42',
-          'rate_buffer_seconds = 51',
-          'account_ratelimit = 69',
-        ]
-      )
-    end
+    it { is_expected.to contain_swift_proxy_config('filter:ratelimit/clock_accuracy').with_value('9436') }
+    it { is_expected.to contain_swift_proxy_config('filter:ratelimit/max_sleep_time_seconds').with_value('3600') }
+    it { is_expected.to contain_swift_proxy_config('filter:ratelimit/log_sleep_time_seconds').with_value('42') }
+    it { is_expected.to contain_swift_proxy_config('filter:ratelimit/rate_buffer_seconds').with_value('51') }
+    it { is_expected.to contain_swift_proxy_config('filter:ratelimit/account_ratelimit').with_value('69') }
   end
 
 end

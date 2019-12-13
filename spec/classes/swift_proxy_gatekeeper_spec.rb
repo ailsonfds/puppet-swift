@@ -6,50 +6,26 @@ describe 'swift::proxy::gatekeeper' do
     {}
   end
 
-  let :pre_condition do
-    'class { "concat::setup": }
-    concat { "/etc/swift/proxy-server.conf": }'
-  end
-
-  let :fragment_file do
-    "/var/lib/puppet/concat/_etc_swift_proxy-server.conf/fragments/34_swift_gatekeeper"
-  end
-
   describe "when using default parameters" do
-    it 'should build the fragment with correct parameters' do
-      verify_contents(catalogue, fragment_file,
-        [
-          '[filter:gatekeeper]',
-          'use = egg:swift#gatekeeper',
-          'set log_name = gatekeeper',
-          'set log_facility = LOG_LOCAL0',
-          'set log_level = INFO',
-          'set log_headers = false',
-          'set log_address = /dev/log',
-        ]
-      )
-    end
+    it { is_expected.to contain_swift_proxy_config('filter:gatekeeper/use').with_value('egg:swift#gatekeeper') }
+    it { is_expected.to contain_swift_proxy_config('filter:gatekeeper/set log_name').with_value('gatekeeper') }
+    it { is_expected.to contain_swift_proxy_config('filter:gatekeeper/set log_facility').with_value('LOG_LOCAL2') }
+    it { is_expected.to contain_swift_proxy_config('filter:gatekeeper/set log_level').with_value('INFO') }
+    it { is_expected.to contain_swift_proxy_config('filter:gatekeeper/set log_headers').with_value('false') }
+    it { is_expected.to contain_swift_proxy_config('filter:gatekeeper/set log_address').with_value('/dev/log') }
   end
 
   describe "when overriding default parameters" do
     let :params do
       {
         :log_name         => 'newgatekeeper',
-        :log_facility     => 'LOG_LOCAL2',
+        :log_facility     => 'LOG_LOCAL3',
         :log_level        => 'WARN',
       }
     end
-    it 'should build the fragment with correct parameters' do
-      verify_contents(catalogue, fragment_file,
-        [
-          '[filter:gatekeeper]',
-          'use = egg:swift#gatekeeper',
-          'set log_name = newgatekeeper',
-          'set log_facility = LOG_LOCAL2',
-          'set log_level = WARN',
-        ]
-      )
-    end
+    it { is_expected.to contain_swift_proxy_config('filter:gatekeeper/set log_name').with_value('newgatekeeper') }
+    it { is_expected.to contain_swift_proxy_config('filter:gatekeeper/set log_facility').with_value('LOG_LOCAL3') }
+    it { is_expected.to contain_swift_proxy_config('filter:gatekeeper/set log_level').with_value('WARN') }
   end
 
 end

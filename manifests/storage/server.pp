@@ -31,24 +31,21 @@
 #   Defaults to 25.
 #
 # [*incoming_chmod*] Incoming chmod to set in the rsync server.
-#   Optional. Defaults to 0644 for maintaining backwards compatibility.
-#   *NOTE*: Recommended parameter: 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r'
+#   Optional. Defaults to 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r'
 #   This mask translates to 0755 for directories and 0644 for files.
 #
 # [*outgoing_chmod*] Outgoing chmod to set in the rsync server.
-#   Optional. Defaults to 0644 for maintaining backwards compatibility.
-#   *NOTE*: Recommended parameter: 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r'
+#   Optional. Defaults to 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r'
 #   This mask translates to 0755 for directories and 0644 for files.
 #
-
 # [*pipeline*]
 #   (optional) Pipeline of applications.
 #   Defaults to ["${type}-server"].
 #
 # [*mount_check*]
 #   (optional) Whether or not check if the devices are mounted to prevent accidentally
-#   writing to the root device
-#   Defaults to false.
+#   writing to the root device.
+#   Defaults to true.
 #
 # [*user*]
 #   (optional) User to run as
@@ -61,7 +58,7 @@
 #   one. Increasing the number of workers may reduce the possibility of slow file
 #   system operations in one request from negatively impacting other requests.
 #   See http://docs.openstack.org/developer/swift/deployment_guide.html#general-service-tuning
-#   Defaults to '1'.
+#   Defaults to $::os_workers.
 #
 # [*allow_versions*]
 #   (optional) Enable/Disable object versioning feature
@@ -69,15 +66,15 @@
 #
 # [*replicator_concurrency*]
 #   (optional) Number of replicator workers to spawn.
-#   Defaults to $::processorcount.
+#   Defaults to 1.
 #
 # [*updater_concurrency*]
 #   (optional) Number of updater workers to spawn.
-#   Defaults to $::processorcount.
+#   Defaults to 1.
 #
 # [*reaper_concurrency*]
 #   (optional) Number of reaper workers to spawn.
-#   Defaults to $::processorcount.
+#   Defaults to 1.
 #
 # [*log_facility*]
 #   (optional) Syslog log facility.
@@ -93,7 +90,7 @@
 # [*log_name*]
 #   (optional) Label used when logging.
 #   Defaults to "${type}-server".
-
+#
 # [*log_udp_host*]
 #   (optional) If not set, the UDP receiver for syslog is disabled.
 #   Defaults to undef.
@@ -102,36 +99,77 @@
 #   (optional) Port value for UDP receiver, if enabled.
 #   Defaults to undef.
 #
-# [*config_file_path*]
-#   (optional) The configuration file name.
-#   Defaults to "${type}-server/${name}.conf".
+# [*log_requests*]
+#   (optional) Whether or not log every request. reduces logging output if false,
+#   good for seeing errors if true
+#   Defaults to true.
+#
+#  [*config_file_path*]
+#    (optional) The configuration file name.
+#    Starting at the path "/etc/swift/"
+#    Defaults to "${type}-server.conf"
+#
+# [*statsd_enabled*]
+#  (optional) Should statsd configuration items be writen out to config files
+#  Defaults to false.
+#
+# [*log_statsd_host*]
+#   (optional) statsd host to send data to.
+#   Defaults to 'localhost'
+#
+# [*log_statsd_port*]
+#   (optional) statsd port to send data to.
+#   Defaults to 8125
+#
+# [*log_statsd_default_sample_rate*]
+#   (optional) Default sample rate for data. This should be a number between 0
+#   and 1. According to the documentation this should be set to 1 and the
+#   sample rate factor should be adjusted.
+#   Defaults to '1.0'
+#
+# [*log_statsd_sample_rate_factor*]
+#   (optional) sample rate factor for data.
+#   Defaults to '1.0'
+#
+# [*log_statsd_metric_prefix*]
+#   (optional) Prefix for data being sent to statsd.
+#   Defaults to ''
 #
 define swift::storage::server(
   $type,
   $storage_local_net_ip,
-  $devices                = '/srv/node',
-  $owner                  = 'swift',
-  $group                  = 'swift',
-  $incoming_chmod         = '0644',
-  $outgoing_chmod         = '0644',
-  $max_connections        = 25,
-  $pipeline               = ["${type}-server"],
-  $mount_check            = false,
-  $user                   = 'swift',
-  $workers                = '1',
-  $allow_versions         = false,
-  $replicator_concurrency = $::processorcount,
-  $updater_concurrency    = $::processorcount,
-  $reaper_concurrency     = $::processorcount,
-  $log_facility           = 'LOG_LOCAL2',
-  $log_level              = 'INFO',
-  $log_address            = '/dev/log',
-  $log_name               = "${type}-server",
-  $log_udp_host           = undef,
-  $log_udp_port           = undef,
+  $devices                        = '/srv/node',
+  $owner                          = 'swift',
+  $group                          = 'swift',
+  $incoming_chmod                 = 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r',
+  $outgoing_chmod                 = 'Du=rwx,g=rx,o=rx,Fu=rw,g=r,o=r',
+  $max_connections                = 25,
+  $pipeline                       = ["${type}-server"],
+  $mount_check                    = true,
+  $user                           = 'swift',
+  $workers                        = $::os_workers,
+  $allow_versions                 = false,
+  $replicator_concurrency         = 1,
+  $updater_concurrency            = 1,
+  $reaper_concurrency             = 1,
+  $log_facility                   = 'LOG_LOCAL2',
+  $log_level                      = 'INFO',
+  $log_address                    = '/dev/log',
+  $log_name                       = "${type}-server",
+  $log_udp_host                   = undef,
+  $log_udp_port                   = undef,
+  $log_requests                   = true,
   # this parameters needs to be specified after type and name
-  $config_file_path       = "${type}-server/${name}.conf"
+  $config_file_path               = "${type}-server.conf",
+  $statsd_enabled                 = false,
+  $log_statsd_host                = 'localhost',
+  $log_statsd_port                = 8125,
+  $log_statsd_default_sample_rate = '1.0',
+  $log_statsd_sample_rate_factor  = '1.0',
+  $log_statsd_metric_prefix       = '',
 ) {
+
+  include ::swift::deps
 
   if ($incoming_chmod == '0644') {
     warning('The default incoming_chmod set to 0644 may yield in error prone directories and will be changed in a later release.')
@@ -155,7 +193,6 @@ define swift::storage::server(
   }
 
   include "::swift::storage::${type}"
-  include ::concat::setup
 
   validate_re($name, '^\d+$')
   validate_re($type, '^object|container|account$')
@@ -179,9 +216,9 @@ define swift::storage::server(
   concat { "/etc/swift/${config_file_path}":
     owner   => $owner,
     group   => $group,
-    notify  => Service["swift-${type}", "swift-${type}-replicator"],
+    notify  => Service["swift-${type}-server", "swift-${type}-replicator", "swift-${type}-auditor"],
     require => Package['swift'],
-    mode    => '0640',
+    tag     => 'swift-concat',
   }
 
   $required_middlewares = split(

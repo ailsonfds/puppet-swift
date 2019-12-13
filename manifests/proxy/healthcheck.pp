@@ -15,10 +15,9 @@
 #
 class swift::proxy::healthcheck() {
 
-  concat::fragment { 'swift_healthcheck':
-    target  => '/etc/swift/proxy-server.conf',
-    content => template('swift/proxy/healthcheck.conf.erb'),
-    order   => '25',
-  }
+  include ::swift::deps
 
+  swift_proxy_config {
+    'filter:healthcheck/use': value => 'egg:swift#healthcheck';
+  }
 }
