@@ -7,15 +7,15 @@
         },
         {
             "name": "openstack/keystone",
-            "version_requirement": ">=13.3.0 <14.0.0"
+            "version_requirement": ">=14.4.0 <15.0.0"
         },
         {
             "name": "puppetlabs/rsync",
-            "version_requirement": ">=0.2.0 <1.0.0"
+            "version_requirement": ">=1.1.0 <2.0.0"
         },
         {
             "name": "puppetlabs/stdlib",
-            "version_requirement": ">=4.0.0 <5.0.0"
+            "version_requirement": ">=5.0.0 <6.0.0"
         },
         {
             "name": "puppetlabs/xinetd",
@@ -56,7 +56,6 @@
         {
             "operatingsystem": "Ubuntu",
             "operatingsystemrelease": [
-                "16.04",
                 "18.04"
             ]
         }
@@ -65,11 +64,10 @@
     "requirements": [
         {
             "name": "puppet",
-            "version_requirement": "4.x"
+            "version_requirement": "5.x"
         }
     ],
     "source": "git://github.com/openstack/puppet-swift.git",
     "summary": "Puppet module for OpenStack Swift",
-
-    "version": "13.3.1"
+    "version": "14.4.0"
 }

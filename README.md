@@ -22,7 +22,7 @@ swift
 Overview
 --------
 
-The swift module is a part of [OpenStack](https://github.com/openstack), an effort by the OpenStack infrastructure team to provide continuous integration testing and code review for OpenStack and OpenStack community projects as part of the core software.  The module itself is used to flexibly configure and manage the object storage service for OpenStack.
+The swift module is a part of [OpenStack](https://git.openstack.org), an effort by the OpenStack infrastructure team to provide continuous integration testing and code review for OpenStack and OpenStack community projects as part of the core software.  The module itself is used to flexibly configure and manage the object storage service for OpenStack.
 
 Module Description
 ------------------
@@ -36,7 +36,7 @@ Setup
 
 **What the swift module affects**
 
-* [Swift](https://wiki.openstack.org/wiki/Swift), the object storage service for OpenStack.
+* [Swift](https://docs.openstack.org/swift/latest/), the object storage service for OpenStack.
 
 ### Installing swift
 
