@@ -22,12 +22,14 @@ describe 'swift::bench' do
   end
 
   let :pre_condition do
-    "class { 'swift': swift_hash_suffix => 'string' }"
+    "class { 'swift': swift_hash_path_suffix => 'string' }"
   end
 
   let :facts do
-    { :operatingsystem => 'Ubuntu',
-      :osfamily        => 'Debian' }
+    OSDefaults.get_facts({
+      :operatingsystem => 'Ubuntu',
+      :osfamily        => 'Debian'
+    })
   end
 
   let :params do
@@ -36,10 +38,6 @@ describe 'swift::bench' do
 
   shared_examples 'swift::bench' do
     let (:p) { default_params.merge!(params) }
-
-    it 'depends on swift package' do
-      is_expected.to contain_package('swift').with_before(/Swift_bench_config\[.+\]/)
-    end
 
     it 'configures swift-bench.conf' do
       is_expected.to contain_swift_bench_config(

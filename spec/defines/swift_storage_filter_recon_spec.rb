@@ -9,24 +9,13 @@ describe 'swift::storage::filter::recon' do
     {}
   end
 
-  let :pre_condition do
-    'class { "concat::setup": }
-     concat { "/etc/swift/dummy-server.conf": }'
-  end
-
-  let :fragment_file do
-    "/var/lib/puppet/concat/_etc_swift_dummy-server.conf/fragments/35_swift_recon_dummy"
-  end
-
   describe 'when passing default parameters' do
     it 'should build the fragment with correct content' do
-      verify_contents(catalogue, fragment_file,
-        [
-          '[filter:recon]',
-          'use = egg:swift#recon',
-          'recon_cache_path = /var/cache/swift'
-        ]
-      )
+      is_expected.to contain_concat_fragment('swift_recon_dummy').with_content('
+[filter:recon]
+use = egg:swift#recon
+recon_cache_path = /var/cache/swift
+')
     end
   end
 
@@ -37,13 +26,7 @@ describe 'swift::storage::filter::recon' do
       }
     end
     it 'should build the fragment with correct content' do
-      verify_contents(catalogue, fragment_file,
-        [
-          '[filter:recon]',
-          'use = egg:swift#recon',
-          'recon_cache_path = /some/other/path'
-        ]
-      )
+      is_expected.to contain_concat_fragment('swift_recon_dummy').with_content(/recon_cache_path = \/some\/other\/path/)
     end
   end
 

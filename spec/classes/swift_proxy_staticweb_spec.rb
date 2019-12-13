@@ -6,16 +6,15 @@ describe 'swift::proxy::staticweb' do
     {}
   end
 
-  let :pre_condition do
-    'class { "concat::setup": }
-     concat { "/etc/swift/proxy-server.conf": }'
-  end
+  it { is_expected.to contain_swift_proxy_config('filter:staticweb/use').with_value('egg:swift#staticweb') }
 
-  let :fragment_file do
-    "/var/lib/puppet/concat/_etc_swift_proxy-server.conf/fragments/32_swift-proxy-staticweb"
+  describe "when overriding default parameters" do
+    let :params do
+      {
+        :url_base => 'https://www.example.com',
+      }
+    end
+    it { is_expected.to contain_swift_proxy_config('filter:staticweb/url_base').with_value('https://www.example.com') }
   end
-
-  it { is_expected.to contain_file(fragment_file).with_content(/[filter:staticweb]/) }
-  it { is_expected.to contain_file(fragment_file).with_content(/use = egg:swift#staticweb/) }
 
 end

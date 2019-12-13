@@ -25,7 +25,7 @@
 #
 #  [*workers*]
 #    (optional) Number of threads to process requests.
-#    Defaults to the number of processors.
+#    Defaults to $::os_workers.
 #
 #  [*allow_account_management*]
 #    (optional) Rather or not requests through this proxy can create and
@@ -59,7 +59,7 @@
 #
 #  [*log_facility*]
 #    (optional) Log level
-#    Defaults to 'LOG_LOCAL1'.
+#    Defaults to 'LOG_LOCAL2'.
 #
 #  [*log_handoffs*]
 #     (optional) If True, the proxy will log whenever it has to failover to a handoff node
@@ -98,7 +98,28 @@
 #    Configures log_name for swift proxy-server.
 #    Optional. Defaults to proxy-server
 #
-# == Examples
+# [*cors_allow_origin*]
+#   (optional) Origins to be allowed to make Cross Origin Requests.
+#   A comma separated list of full url (http://foo.bar:1234,https://foo.bar)
+#   Defaults to undef.
+#
+# [*strict_cors_mode*]
+#   (optional) Whether or not log every request. reduces logging output if false,
+#   good for seeing errors if true
+#   Defaults to true.
+#
+#  [*service_provider*]
+#    (optional)
+#    To use the swiftinit service provider to manage swift services, set
+#    service_provider to "swiftinit".  When enable is true the provider
+#    will populate boot files that start swift using swift-init at boot.
+#    See README for more details.
+#    Defaults to $::swift::params::service_provider.
+#
+#  [*purge_config*]
+#    (optional) Whether to set only the specified config options
+#    in the proxy config.
+#    Defaults to false.
 #
 # == Authors
 #
@@ -112,7 +133,7 @@ class swift::proxy(
   $proxy_local_net_ip,
   $port                      = '8080',
   $pipeline                  = ['healthcheck', 'cache', 'tempauth', 'proxy-server'],
-  $workers                   = $::processorcount,
+  $workers                   = $::os_workers,
   $allow_account_management  = true,
   $account_autocreate        = true,
   $log_headers               = 'False',
@@ -120,22 +141,24 @@ class swift::proxy(
   $log_udp_port              = undef,
   $log_address               = '/dev/log',
   $log_level                 = 'INFO',
-  $log_facility              = 'LOG_LOCAL1',
+  $log_facility              = 'LOG_LOCAL2',
   $log_handoffs              = true,
   $log_name                  = 'proxy-server',
+  $cors_allow_origin         = undef,
+  $strict_cors_mode          = true,
   $read_affinity             = undef,
   $write_affinity            = undef,
   $write_affinity_node_count = undef,
   $node_timeout              = undef,
   $manage_service            = true,
   $enabled                   = true,
-  $package_ensure            = 'present'
-) {
+  $package_ensure            = 'present',
+  $service_provider          = $::swift::params::service_provider,
+  $purge_config              = false,
+) inherits ::swift::params {
 
-  include ::swift::params
-  include ::concat::setup
-
-  Swift_config<| |> ~> Service['swift-proxy']
+  include ::swift::deps
+  Swift_config<| |> ~> Service['swift-proxy-server']
 
   validate_bool($account_autocreate)
   validate_bool($allow_account_management)
@@ -173,13 +196,62 @@ class swift::proxy(
     tag    => ['openstack', 'swift-package'],
   }
 
-  concat { '/etc/swift/proxy-server.conf':
-    owner   => 'swift',
-    group   => 'swift',
-    mode    => '0660',
-    require => Package['swift-proxy'],
+  resources { 'swift_proxy_config':
+    purge => $purge_config,
   }
 
+  swift_proxy_config {
+    'DEFAULT/bind_port':                          value => $port;
+    'DEFAULT/bind_ip':                            value => $proxy_local_net_ip;
+    'DEFAULT/workers':                            value => $workers;
+    'DEFAULT/user':                               value => 'swift';
+    'DEFAULT/log_name':                           value => $log_name;
+    'DEFAULT/log_facility':                       value => $log_facility;
+    'DEFAULT/log_level':                          value => $log_level;
+    'DEFAULT/log_headers':                        value => $log_headers;
+    'DEFAULT/log_address':                        value => $log_address;
+    'DEFAULT/log_udp_host':                       value => $log_udp_host;
+    'DEFAULT/log_udp_port':                       value => $log_udp_port;
+    'pipeline:main/pipeline':                     value => join($pipeline, ' ');
+    'app:proxy-server/use':                       value => 'egg:swift#proxy';
+    'app:proxy-server/set log_name':              value => $log_name;
+    'app:proxy-server/set log_facility':          value => $log_facility;
+    'app:proxy-server/set log_level':             value => $log_level;
+    'app:proxy-server/set log_address':           value => $log_address;
+    'app:proxy-server/log_handoffs':              value => $log_handoffs;
+    'app:proxy-server/allow_account_management':  value => $allow_account_management;
+    'app:proxy-server/account_autocreate':        value => $account_autocreate;
+    'app:proxy-server/write_affinity':            value => $write_affinity;
+    'app:proxy-server/write_affinity_node_count': value => $write_affinity_node_count;
+    'app:proxy-server/node_timeout':              value => $node_timeout;
+  }
+
+  if $cors_allow_origin {
+    swift_proxy_config {
+      'DEFAULT/cors_allow_origin': value => $cors_allow_origin;
+      'DEFAULT/strict_cors_mode':  value => $strict_cors_mode;
+    }
+  } else {
+    swift_proxy_config {
+      'DEFAULT/cors_allow_origin': value => $::os_service_default;
+      'DEFAULT/strict_cors_mode':  value => $::os_service_default;
+    }
+  }
+
+  if $read_affinity {
+    swift_proxy_config {
+      'app:proxy-server/sorting_method': value => 'affinity';
+      'app:proxy-server/read_affinity':  value => $read_affinity;
+    }
+  } else {
+    swift_proxy_config {
+      'app:proxy-server/sorting_method': value => $::os_service_default;
+      'app:proxy-server/read_affinity':  value => $::os_service_default;
+    }
+  }
+
+  # Remove 'proxy-server' from the pipeline, convert pipeline elements
+  # into class names then convert '-' to '_'.
   $required_classes = split(
     inline_template(
       "<%=
@@ -210,13 +282,13 @@ class swift::proxy(
     }
   }
 
-  service { 'swift-proxy':
-    ensure    => $service_ensure,
-    name      => $::swift::params::proxy_service_name,
-    enable    => $enabled,
-    provider  => $::swift::params::service_provider,
-    hasstatus => true,
-    subscribe => Concat['/etc/swift/proxy-server.conf'],
-    tag       => 'swift-service',
+  # Require 'swift::proxy::' classes for each of the elements in pipeline.
+  swift::service { 'swift-proxy-server':
+    os_family_service_name => $::swift::params::proxy_server_service_name,
+    service_ensure         => $service_ensure,
+    enabled                => $enabled,
+    config_file_name       => 'proxy-server.conf',
+    service_provider       => $service_provider,
+    service_require        => Class[$required_classes]
   }
 }

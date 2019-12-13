@@ -6,29 +6,11 @@ describe 'swift::proxy::s3token' do
     {}
   end
 
-  let :pre_condition do
-    'class { "concat::setup": }
-     concat { "/etc/swift/proxy-server.conf": }'
-  end
-
-  let :fragment_file do
-    "/var/lib/puppet/concat/_etc_swift_proxy-server.conf/fragments/28_swift_s3token"
-  end
-
-  it { is_expected.to contain_class('keystone::python') }
-
   describe "when using default parameters" do
-    it 'should build the fragment with correct parameters' do
-      verify_contents(catalogue, fragment_file,
-        [
-          '[filter:s3token]',
-          'paste.filter_factory = keystonemiddleware.s3_token:filter_factory',
-          'auth_port = 35357',
-          'auth_protocol = http',
-          'auth_host = 127.0.0.1'
-        ]
-      )
-    end
+    it { is_expected.to contain_swift_proxy_config('filter:s3token/paste.filter_factory').with_value('keystonemiddleware.s3_token:filter_factory') }
+    it { is_expected.to contain_swift_proxy_config('filter:s3token/auth_port').with_value('35357') }
+    it { is_expected.to contain_swift_proxy_config('filter:s3token/auth_protocol').with_value('http') }
+    it { is_expected.to contain_swift_proxy_config('filter:s3token/auth_host').with_value('127.0.0.1') }
   end
 
   describe "when overriding default parameters" do
@@ -39,17 +21,9 @@ describe 'swift::proxy::s3token' do
           :auth_host     => '1.2.3.4'
       }
     end
-    it 'should build the fragment with correct parameters' do
-      verify_contents(catalogue, fragment_file,
-        [
-          '[filter:s3token]',
-          'paste.filter_factory = keystonemiddleware.s3_token:filter_factory',
-          'auth_port = 4212',
-          'auth_protocol = https',
-          'auth_host = 1.2.3.4'
-        ]
-      )
-    end
+    it { is_expected.to contain_swift_proxy_config('filter:s3token/auth_port').with_value('4212') }
+    it { is_expected.to contain_swift_proxy_config('filter:s3token/auth_protocol').with_value('https') }
+    it { is_expected.to contain_swift_proxy_config('filter:s3token/auth_host').with_value('1.2.3.4') }
   end
 
 end

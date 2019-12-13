@@ -1,18 +1,16 @@
 require 'spec_helper'
 
 describe 'swift::storage' do
-  # TODO I am not testing the upstart code b/c it should be temporary
-
   let :facts do
-    {
+    OSDefaults.get_facts({
       :operatingsystem => 'Ubuntu',
-      :osfamily        => 'Debian'
-    }
+      :osfamily        => 'Debian',
+    })
   end
 
   describe 'when required classes are specified' do
     let :pre_condition do
-      "class { 'swift': swift_hash_suffix => 'changeme' }"
+      "class { 'swift': swift_hash_path_suffix => 'changeme' }"
     end
 
     describe 'when the local net ip is specified' do
@@ -30,7 +28,11 @@ describe 'swift::storage' do
       )}
     end
     describe 'when local net ip is not specified' do
-      it_raises 'a Puppet::Error', /Must pass storage_local_net_ip/
+      if Puppet::Util::Package.versioncmp(Puppet.version, '4.3.0') >= 0
+        it_raises 'a Puppet::Error', /expects a value for parameter 'storage_local_net_ip'/
+      else
+        it_raises 'a Puppet::Error', /Must pass storage_local_net_ip/
+      end
     end
   end
   describe 'when the dependencies are not specified' do

@@ -6,26 +6,12 @@ describe 'swift::proxy::keystone' do
     {}
   end
 
-  let :fragment_file do
-    '/var/lib/puppet/concat/_etc_swift_proxy-server.conf/fragments/79_swift_keystone'
-  end
-
-  let :pre_condition do
-    '
-      include concat::setup
-      concat { "/etc/swift/proxy-server.conf": }
-    '
-  end
-
-  it { is_expected.to contain_file(fragment_file).with_content(/[filter:keystone]/) }
-
-  it { is_expected.to contain_file(fragment_file).with_content(/use = egg:swift#keystoneauth/) }
+  it { is_expected.to contain_swift_proxy_config('filter:keystone/use').with_value('egg:swift#keystoneauth') }
 
   describe 'with defaults' do
 
-    it { is_expected.to contain_file(fragment_file).with_content(/operator_roles = admin, SwiftOperator/) }
-    it { is_expected.to contain_file(fragment_file).with_content(/is_admin = true/) }
-    it { is_expected.to contain_file(fragment_file).with_content(/reseller_prefix = AUTH_/) }
+    it { is_expected.to contain_swift_proxy_config('filter:keystone/operator_roles').with_value('admin, SwiftOperator') }
+    it { is_expected.to contain_swift_proxy_config('filter:keystone/reseller_prefix').with_value('AUTH_') }
 
   end
 
@@ -33,14 +19,14 @@ describe 'swift::proxy::keystone' do
 
     let :params do
       {
-        :operator_roles  => 'foo',
-        :is_admin        => 'false',
-        :reseller_prefix => 'SWIFT_'
+        :operator_roles      => 'foo',
+        :reseller_prefix     => 'SWIFT_',
+        :reseller_admin_role => 'ResellerAdmin'
       }
 
-      it { is_expected.to contain_file(fragment_file).with_content(/operator_roles = foo/) }
-      it { is_expected.to contain_file(fragment_file).with_content(/is_admin = false/) }
-      it { is_expected.to contain_file(fragment_file).with_content(/reseller_prefix = SWIFT_/) }
+      it { is_expected.to contain_swift_proxy_config('filter:keystone/operator_roles').with_value('foo') }
+      it { is_expected.to contain_swift_proxy_config('filter:keystone/reseller_prefix').with_value('SWIFT_') }
+      it { is_expected.to contain_swift_proxy_config('filter:keystone/reseller_admin_role').with_value('ResellerAdmin') }
 
     end
 

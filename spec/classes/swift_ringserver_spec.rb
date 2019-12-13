@@ -1,4 +1,6 @@
 require 'spec_helper'
+# LP1492636 - Cohabitation of compile matcher and webmock
+WebMock.disable_net_connect!(:allow => "169.254.169.254")
 
 describe 'swift::ringserver' do
 
@@ -6,15 +8,15 @@ describe 'swift::ringserver' do
 
     let :pre_condition do
       "class { 'swift::storage': storage_local_net_ip  => '127.0.0.1' }
-       class {'swift' : swift_hash_suffix => 'eee' }
+       class {'swift' : swift_hash_path_suffix => 'eee' }
        include swift::ringbuilder"
     end
 
     let :facts do
-      {
+      OSDefaults.get_facts({
         :operatingsystem => 'Ubuntu',
-        :osfamily        => 'Debian'
-      }
+        :osfamily        => 'Debian',
+      })
     end
 
     let :params do
@@ -44,15 +46,15 @@ describe 'swift::ringserver' do
   context 'when storage.pp was not already included' do
 
     let :pre_condition do
-      "class {'swift' : swift_hash_suffix => 'eee' }
+      "class {'swift' : swift_hash_path_suffix => 'eee' }
        include swift::ringbuilder"
     end
 
     let :facts do
-      {
+      OSDefaults.get_facts({
         :operatingsystem => 'Ubuntu',
-        :osfamily        => 'Debian'
-      }
+        :osfamily        => 'Debian',
+      })
     end
 
 

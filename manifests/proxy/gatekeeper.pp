@@ -13,7 +13,7 @@
 #
 # [*log_facility*]
 # The log facility of gatekeeper.
-# Default to LOG_LOCAL0.
+# Default to LOG_LOCAL2.
 #
 # [*log_level*]
 # The log level of gatekeeper.
@@ -37,16 +37,20 @@
 #
 class swift::proxy::gatekeeper(
   $log_name     = 'gatekeeper',
-  $log_facility = 'LOG_LOCAL0',
+  $log_facility = 'LOG_LOCAL2',
   $log_level    = 'INFO',
   $log_headers  = false,
   $log_address  = '/dev/log'
 ) {
 
-  concat::fragment { 'swift_gatekeeper':
-    target  => '/etc/swift/proxy-server.conf',
-    content => template('swift/proxy/gatekeeper.conf.erb'),
-    order   => '34',
-  }
+  include ::swift::deps
 
+  swift_proxy_config {
+    'filter:gatekeeper/use':              value => 'egg:swift#gatekeeper';
+    'filter:gatekeeper/set log_name':     value => $log_name;
+    'filter:gatekeeper/set log_facility': value => $log_facility;
+    'filter:gatekeeper/set log_level':    value => $log_level;
+    'filter:gatekeeper/set log_headers':  value => $log_headers;
+    'filter:gatekeeper/set log_address':  value => $log_address;
+  }
 }

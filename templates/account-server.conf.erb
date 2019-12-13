@@ -16,7 +16,13 @@ log_udp_host = <%= @log_udp_host -%>
 <% if @log_udp_host and @log_udp_port -%>
 log_udp_port = <%= @log_udp_port -%>
 <% end %>
-
+<%- if @statsd_enabled -%>
+log_statsd_host = <%=@log_statsd_host%>
+log_statsd_port = <%=@log_statsd_port%>
+log_statsd_default_sample_rate = <%=@log_statsd_default_sample_rate%>
+log_statsd_sample_rate_factor = <%=@log_statsd_sample_rate_factor%>
+log_statsd_metric_prefix = <%=@log_statsd_metric_prefix%>
+<%- end -%>
 
 [pipeline:main]
 pipeline = <%= @pipeline.to_a.join(' ') %>
@@ -26,9 +32,8 @@ use = egg:swift#account
 set log_name = <%= @log_name %>
 set log_facility = <%= @log_facility %>
 set log_level = <%= @log_level %>
-set log_requests = True
+set log_requests = <%= @log_requests %>
 set log_address = <%= @log_address %>
-
 
 [account-replicator]
 concurrency = <%= @replicator_concurrency %>
